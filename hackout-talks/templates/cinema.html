@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Amphitheater Seating Layout</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            text-align: center;
+        }
+
+        .screen {
+            background-color: #ccc;
+            padding: 10px;
+            margin-bottom: 20px;
+            width: 60%;
+            margin-left: auto;
+            margin-right: auto;
+            font-weight: bold;
+            border-radius: 10px;
+        }
+
+        .row {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 10px;
+        }
+
+        .seat {
+            width: 40px;
+            height: 40px;
+            margin: 5px;
+            text-align: center;
+            line-height: 40px;
+            border: 1px solid #444;
+            cursor: pointer;
+            border-radius: 50%;
+        }
+
+        .available { background-color: green; }
+        .reserved { background-color: red; }
+        .blocked { background-color: gray; }
+
+        /* Center alignment with increasing seat count for amphitheater look */
+        .row-1 { margin-left: 50px; }
+        .row-2 { margin-left: 40px; }
+        .row-3 { margin-left: 30px; }
+        .row-4 { margin-left: 20px; }
+        .row-5 { margin-left: 10px; }
+    </style>
+</head>
+<body>
+
+    <div class="screen">Screen</div>
+
+    <!-- Amphitheater shape rows -->
+    <div class="row row-1">
+        <span class="seat available">A1</span>
+        <span class="seat available">A2</span>
+        <span class="seat reserved">A3</span>
+        <span class="seat available">A4</span>
+    </div>
+    <div class="row row-2">
+        <span class="seat available">B1</span>
+        <span class="seat available">B2</span>
+        <span class="seat reserved">B3</span>
+        <span class="seat available">B4</span>
+        <span class="seat available">B5</span>
+    </div>
+    <div class="row row-3">
+        <span class="seat available">C1</span>
+        <span class="seat available">C2</span>
+        <span class="seat reserved">C3</span>
+        <span class="seat available">C4</span>
+        <span class="seat available">C5</span>
+        <span class="seat available">C6</span>
+    </div>
+    <div class="row row-4">
+        <span class="seat available">D1</span>
+        <span class="seat available">D2</span>
+        <span class="seat reserved">D3</span>
+        <span class="seat available">D4</span>
+        <span class="seat available">D5</span>
+        <span class="seat available">D6</span>
+        <span class="seat available">D7</span>
+    </div>
+    <div class="row row-5">
+        <span class="seat available">E1</span>
+        <span class="seat available">E2</span>
+        <span class="seat reserved">E3</span>
+        <span class="seat available">E4</span>
+        <span class="seat available">E5</span>
+        <span class="seat available">E6</span>
+        <span class="seat available">E7</span>
+        <span class="seat available">E8</span>
+    </div>
+
+</body>
+</html>
