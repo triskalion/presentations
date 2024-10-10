@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - User Management</title>
+</head>
+<body>
+    <h2>Admin - User Management</h2>
+    <ul>
+        <!-- This is where we display the list of users dynamically -->
+        {% for user in users %}
+            <li>{{ user['name'] | safe }} - {{ user['email'] }}</li>
+        {% endfor %}
+    </ul>
+</body>
+</html>
