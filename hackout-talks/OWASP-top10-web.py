@@ -1,5 +1,6 @@
-from flask import Flask, request, render_template, render_template_string, send_from_directory, abort, jsonify
-import os
+from flask import Flask, request, render_template, render_template_string, send_from_directory, abort, jsonify, redirect
+import os, requests, sqlite3
+from urllib.parse import urlparse
 
 
 app = Flask(__name__)
@@ -66,6 +67,29 @@ def get_user_data_secure():
 ##A03:2021 – Injection##
 #################################### 
 
+##XSS injection
+
+# Sign-up page
+@app.route('/signupxss', methods=['GET', 'POST'])
+def signupxss():
+    users.clear()
+    if request.method == 'POST':
+        name = request.form['username']
+        email = request.form['email']
+        password = request.form['password']
+        
+        # Store the user (without sanitizing the name, making it vulnerable to XSS)
+        users.append({'name': name, 'email': email, 'password': password})
+        return redirect('/admin')
+    
+    return render_template('signup.html')
+
+# Admin page where the XSS vulnerability will manifest
+@app.route('/admin')
+def admin():
+    # Display the list of users (without escaping their names)
+    return render_template('admin.html', users=users)
+
 ##Template injection
 
 # Vulnerable route where user input is directly injected into the template
@@ -77,15 +101,15 @@ def welcome():
 
 
 
-####################################
-####################################
+#########################################################
+#########################################################
 ##API Top Ten##
-#################################### 
-####################################
+#########################################################
+#########################################################
 
-####################################
+##########################################################
 ##API3:2023 - Broken Object Property Level Authorization##
-#################################### 
+##########################################################
 
 ##Mass Assignment
 # In-memory storage to simulate user data
@@ -103,8 +127,9 @@ def signup():
         'username': request.form.get('username'),
         'email': request.form.get('email'),
         'password': request.form.get('password'),
-        'isAdmin': request.form.get('isAdmin', 'false')  # Mass assignment allows this to be set by user input
+        'isAdmin': request.form.get('isAdmin', 'false')
     }
+
     #user['isAdmin'] = False
     users.append(user)  # Add the user to the list (simulated storage)
 
@@ -122,10 +147,98 @@ def signup():
     users.clear()
     return response
 
-if __name__ == '__main__':
-    app.run(debug=True)
+
+###########################################
+##API7:2023 - Server Side Request Forgery##
+###########################################
+
+@app.route('/fetch-url', methods=['GET'])
+def fetch_url():
+    # Get the 'url' parameter from the query string
+    target_url = request.args.get('url')
+    
+    # If no URL is provided, return an error message
+    if not target_url:
+        return jsonify({"error": "Please provide a URL using the 'url' parameter."}), 400
+    
+    try:
+        parsed_url = urlparse(target_url)
+        if not parsed_url.scheme:
+            return jsonify({"error": "Invalid URL format."}), 400
+         
+        # Remove scheme and prepare the host header (e.g., www.example.com)
+        host_header = parsed_url.netloc
+        
+        # Make a GET request to the URL with the custom Host header
+        headers = {
+            'Host': host_header,# Set Host header to the netloc (host without the scheme)
+            'Secret': 'HackoutTalks#3'
+        }
+        # Fetch the content of the URL
+        response = requests.get(target_url, headers=headers)
+        
+        return response.text
+        # If the request was successful, return the content
+        #if response.status_code == 200:
+        #    return response.text
+        #else:
+        #    return jsonify({"error": f"Failed to fetch the URL. Status code: {response.status_code}"}), 400
+    except Exception as e:
+        # Handle exceptions (e.g., invalid URLs or network errors)
+        return jsonify({"error": str(e)}), 500
 
 
+@app.route('/secrets', methods=['GET'])
+def secrets():
+    # Check if the 'Secret' header is present and its value is 'HackoutTalks#3'
+    secret_header = request.headers.get('Secret')
+    
+    if secret_header == 'HackoutTalks#3':
+        # Return a secret message if the header is correct
+        return jsonify({"secret": "You have accessed the secret area!"})
+    else:
+        # Return 403 Forbidden if the header is missing or incorrect
+        return jsonify({"error": "Forbidden: Public access is denied!"}), 403
+
+
+###########################################
+##API8:2023 - Security Misconfiguration####
+###########################################
+# Sensitive information
+SECRET_API_KEY = "API_KEY_1234567890"
+DATABASE_PASSWORD = "super_secret_password"
+
+def fake_http_call():
+    # Fake HTTP call using the actual API key
+    response = requests.get(f"https://fakeapi.com/data?apikey={SECRET_API_KEY}")
+    return response
+
+def fake_db_connection():
+    # Fake DB connection using the actual password
+    conn = sqlite3.connect(f"file:fake_db?password={DATABASE_PASSWORD}", uri=True)
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM fake_table")
+    result = cursor.fetchall()
+    return result
+
+@app.route('/error')
+def trigger_error():
+    try:
+        # Call to a fake HTTP request (more lines of code shown in stack trace)
+        response = fake_http_call()
+        
+        # Call to a fake database connection (more lines of code shown in stack trace)
+        result = fake_db_connection()
+
+        # Adding some additional code before the error
+        temp_var = "Some temporary value"
+        another_var = "Another temporary value"
+        
+        # Intentionally cause an error
+        result = 1 / 0  # This will raise ZeroDivisionError
+    except Exception as e:
+        # Trigger an error to show more lines of the stack trace
+        raise ZeroDivisionError("This is an intentional error after using API key and DB password") 
 # Example usage: start the Flask app
 if __name__ == '__main__':
     app.run(debug=True)
